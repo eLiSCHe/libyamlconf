@@ -1,0 +1,5 @@
+base: base1.yaml
+b: 3
+list:
+  - a
+  - b

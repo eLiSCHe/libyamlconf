@@ -9,4 +9,4 @@ This library makes use of [uv](https://github.com/astral-sh/uv) and [ruff](https
 Use the following steps to prepare your development enviroment:
 
 - Prepare a virtual environment and install development dependencies: `uv sync`
-- Activate the virtual environment: `source ./venv/bin/activate`
+- Activate the virtual environment: `source .venv/bin/activate`

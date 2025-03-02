@@ -1,0 +1,8 @@
+base:
+  - base1.yaml
+  - base2.yaml
+c: 9
+obj:
+  some: other
+list:
+  - c
