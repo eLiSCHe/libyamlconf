@@ -8,7 +8,5 @@ This library makes use of [uv](https://github.com/astral-sh/uv) and [ruff](https
 
 Use the following steps to prepare your development enviroment:
 
-- Select Python version: `uv python pin 3.10`
-- Prepare a virtual environment: `uv venv`
+- Prepare a virtual environment and install development dependencies: `uv sync`
 - Activate the virtual environment: `source ./venv/bin/activate`
-- Install the development dependencies: `uv pip sync docs/dev-requirements.txt`
