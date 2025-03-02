@@ -11,3 +11,11 @@ wheels/
 
 # Ruff Cache
 .ruff_cache
+
+# Pytest Cache
+.pytest_cache
+
+# Coverage
+htmlcov
+.coverage
+

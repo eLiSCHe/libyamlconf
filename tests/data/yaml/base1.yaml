@@ -1,0 +1,8 @@
+a: 1
+b: 2
+c: 3
+file: other_include.txt
+obj:
+  some: value
+  hello: world
+  file: other/include.txt

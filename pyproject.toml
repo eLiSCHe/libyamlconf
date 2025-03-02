@@ -61,6 +61,7 @@ source = [
 [tool.coverage.run]
 branch = true
 source = ["libyamlconf"]
+dynamic_context = "test_function"
 
 [tool.coverage.report]
 include_namespace_packages = true

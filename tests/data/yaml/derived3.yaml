@@ -1,0 +1,4 @@
+base:
+  - other/base.yaml
+  - base1.yaml
+c: 10
