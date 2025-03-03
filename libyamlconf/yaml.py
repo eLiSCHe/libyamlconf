@@ -1,4 +1,8 @@
-"""Load and merge YAMl configuration."""
+"""
+Load and merge YAMl configuration.
+
+This module implements the hierarchical YAML parsing.
+"""
 
 import os
 import logging
@@ -14,13 +18,29 @@ class InvalidConfiguration(Exception):
 
 
 def _invalid_config(message: str) -> None:
-    """Raise an InvalidConfiguration exception."""
+    """
+    Raise an InvalidConfiguration exception.
+
+    This function raises and InvalidConfiguration exception using the given message.
+    It also logs the message as critical error.
+
+    :param message: Error message for the log and the exception.
+
+    :raises InvalidConfiguration: InvalidConfiguration is used to signal and invalid yaml configuration.
+    """
     logging.critical(message)
     raise InvalidConfiguration(message)
 
 
 def _load_yaml(file: Path) -> dict[str, Any]:
-    """Load the content of a single YAML file."""
+    """
+    Load the content of a single YAML file.
+
+    This function raises an InvalidConfiguration exception if the file does not exist.
+
+    :param file: Path of the YAMl config file to parse.
+    :return: Data contained in the YAML config file.
+    """
     if not os.path.isfile(file):
         _invalid_config(f"Config file {file} does not exist!")
 
@@ -29,7 +49,16 @@ def _load_yaml(file: Path) -> dict[str, Any]:
 
 
 def _contains_path(data: dict, path: list[str]) -> bool:
-    """Get the config value for the given keys path."""
+    """
+    Test if a given key path exists in the config data.
+
+    This function tries to walk along the given keys path through the given data
+    and returns true if the path exists, and false otherwise.
+
+    :param data: Data to check for the keys path.
+    :param path: Keys path.
+    :return: True if the path exists, false else.
+    """
     for key in path:
         if key in data:
             data = data[key]
@@ -39,7 +68,16 @@ def _contains_path(data: dict, path: list[str]) -> bool:
 
 
 def _get_value_for_path(data: dict, path: list[str]) -> Any | None:
-    """Get the config value for the given keys path."""
+    """
+    Get the config value for the given keys path.
+
+    This functions walks along the given key path through the given data
+    and returns the value specified by this path, if it exists.
+
+    :param data: Data to get the specified value.
+    :param path: Keys path.
+    :return: Value specified by the keys path or None.
+    """
     for key in path:
         if key in data:
             data = data[key]
@@ -49,7 +87,17 @@ def _get_value_for_path(data: dict, path: list[str]) -> Any | None:
 
 
 def _set_value_for_path(data: dict, path: list[str], value: Any) -> bool:
-    """Set the config value for the given keys path."""
+    """
+    Set the config value for the given keys path.
+
+    This functions walks along the given key path through the given data
+    and sets the value of the path to the given value.
+
+    :param data: Data to update the value.
+    :param path: Keys path.
+    :param value: New value for given config path.
+    :return: True if the value was update, false otherwise.
+    """
     for key in path[:-1]:
         if key in data:
             data = data[key]
@@ -60,7 +108,18 @@ def _set_value_for_path(data: dict, path: list[str], value: Any) -> bool:
 
 
 def _merge_values(current: Any, new: Any) -> Any:
-    """Merge two values where the key appears multiple times."""
+    """
+    Merge two values where the key appears multiple times.
+
+    This function implements the config data merge, which is needed if multiple YAML config files
+    in the hierarchy provide the same config key path. The general strategy is that the higher value
+    in the config files hierarchy wins. Lists are in general concatenated and dicts are merged by adding
+    new values and overwriting existing values.
+
+    :param current: Current value of the config key.
+    :param new: New value of the config key from the higher config file.
+    :returns: Merged config value.
+    """
     if isinstance(current, str) or isinstance(current, int) or isinstance(current, float) or isinstance(current, Path):
         # Overwrite old value for simple types.
         return new
@@ -85,21 +144,33 @@ def _merge_values(current: Any, new: Any) -> Any:
 
 
 class YamlLoader:
-    def __init__(self, parent_key: str = "base", relative_path_keys: list[str] = []):
+    def __init__(self, parent_key: str = "base", relative_path_keys: list[list[str]] = []):
+        """
+        Create a new YamlLoader instance.
+
+        :param parent_key: Key used to reference included config files.
+        :param relative_path_keys: List of list of config keys. Each list is interpreted as one config path,
+                                   and the value of each path is completed to an absolute file path with respect
+                                   to the config file location.
+        """
         self._parent_key: str = parent_key
         self._relative_path_keys: list[list[str]] = relative_path_keys
         self._layers: list[Path] = []
         self._layer_data: dict[Path, dict] = {}
         self._data: dict[str, Any] = {}
 
-    def _reset(self):
+    def _reset(self) -> None:
         """Reset parsing data structures."""
         self._layers: list[Path] = []
         self._layer_data: dict[Path, dict] = {}
         self._data: dict[str, Any] = {}
 
-    def _recursive_load(self, file: Path) -> dict[str, Any]:
-        """Recursive load the YAML hierarchy."""
+    def _recursive_load(self, file: Path) -> None:
+        """
+        Recursive load the YAML hierarchy.
+
+        :param file: File path of the next YAML config file to load and add.
+        """
         if file in self._layers:
             logging.warning(
                 "Config file %s is inherited multiple times. It was already loaded and will be skipped now.", file
@@ -134,7 +205,7 @@ class YamlLoader:
                     f"Unsupported value for {self._parent_key}: {data[self._parent_key]} ({type(data[self._parent_key])})"
                 )
 
-    def _resolve_relative_paths(self):
+    def _resolve_relative_paths(self) -> None:
         """Convert relative paths to absolute paths."""
         for layer in self._layers:
             for path in self._relative_path_keys:
@@ -146,7 +217,7 @@ class YamlLoader:
                 else:
                     logging.debug("No match for path %s for layer %s.", path, layer)
 
-    def _merge_config_data(self):
+    def _merge_config_data(self) -> None:
         """Merge the config layers."""
         # Init data using lowest layer
         self._data = self._layer_data[self._layers[-1]]
@@ -190,7 +261,12 @@ class YamlLoader:
                     self._data[key] = merged
 
     def load(self, file: Path) -> dict[str, Any]:
-        """Load a hierarchical YAML file."""
+        """
+        Load a hierarchical YAML file.
+
+        :param file: Path of the YAML config file to load.
+        :return: Merged configuration values for the YAML config file hierarchy.
+        """
         self._reset()
 
         self._recursive_load(file)
