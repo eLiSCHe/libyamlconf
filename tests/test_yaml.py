@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from libyamlconf.yaml import _load_yaml, InvalidConfiguration, YamlLoader
+from libyamlconf.yaml import _load_yaml, InvalidConfiguration, YamlLoader, _get_value_for_path, _set_value_for_path
 
 test_data = Path(__file__).parent / "data" / "yaml"
 
@@ -149,3 +149,26 @@ class TestYaml:
 
         with pytest.raises(InvalidConfiguration):
             loader.load(config)
+
+    def test_get_value_for_path_miss(self):
+        """get_value_for_path shall return None for a miss."""
+        data = { "test": { "hello": "world" } }
+        
+        value = _get_value_for_path(data, ["test", "hello"])
+        assert value == "world"
+        
+        value = _get_value_for_path(data, ["test", "other"])
+        assert value == None
+
+    def test_set_value_for_path_miss(self):
+        """get_value_for_path shall return None for a miss."""
+        data = { "a": { "b": { "c": "d" } } }
+        
+        result = _set_value_for_path(data, ["a", "b", "c"], "d")
+        assert result == True
+        
+        result = _set_value_for_path(data, ["a", "b", "d"], "value")
+        assert result == False
+        
+        result = _set_value_for_path(data, ["a", "e", "c"], "value")
+        assert result == False
