@@ -49,8 +49,8 @@ convention = "google"
 
 [tool.pytest.ini_options]
 minversion = "6.2.5"
-addopts = ""
-testpaths = [ "tests" ]
+addopts = "--doctest-modules"
+testpaths = [ "tests", "libyamlconf" ]
 markers = [
 ]
 log_level = "debug"
