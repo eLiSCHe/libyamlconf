@@ -10,3 +10,5 @@ Use the following steps to prepare your development enviroment:
 
 - Prepare a virtual environment and install development dependencies: `uv sync`
 - Activate the virtual environment: `source .venv/bin/activate`
+
+Please test your changes locally before raising and PR using `./test.sh`
