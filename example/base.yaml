@@ -1,0 +1,4 @@
+version: 1
+common:
+  base: value
+  file: referenced.txt
