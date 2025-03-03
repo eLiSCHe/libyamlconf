@@ -158,17 +158,17 @@ class TestYaml:
         assert value == "world"
         
         value = _get_value_for_path(data, ["test", "other"])
-        assert value == None
+        assert value is None
 
     def test_set_value_for_path_miss(self):
         """get_value_for_path shall return None for a miss."""
         data = { "a": { "b": { "c": "d" } } }
         
         result = _set_value_for_path(data, ["a", "b", "c"], "d")
-        assert result == True
+        assert result
         
         result = _set_value_for_path(data, ["a", "b", "d"], "value")
-        assert result == False
+        assert not result
         
         result = _set_value_for_path(data, ["a", "e", "c"], "value")
-        assert result == False
+        assert not result
