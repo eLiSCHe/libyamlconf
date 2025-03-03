@@ -10,7 +10,9 @@ libyamlconf documentation
    :maxdepth: 2
    :caption: Contents:
 
+   usage
    yaml
+   verify
    indices
 
 .. automodule:: libyamlconf

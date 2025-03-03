@@ -23,6 +23,7 @@ classifiers = [
 requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
+    "deepdiff>=8.2.0",
     "pydantic>=2.10.6",
     "pyyaml>=6.0.2",
 ]
@@ -50,7 +51,7 @@ convention = "google"
 [tool.pytest.ini_options]
 minversion = "6.2.5"
 addopts = "--doctest-modules"
-testpaths = [ "tests", "libyamlconf" ]
+testpaths = [ "tests", "libyamlconf", "example" ]
 markers = [
 ]
 log_level = "debug"

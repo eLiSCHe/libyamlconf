@@ -1,0 +1,4 @@
+base: base.yaml
+some: config
+file: not-existing.file
+not-used: value

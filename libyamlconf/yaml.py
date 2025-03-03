@@ -54,7 +54,7 @@ def _contains_path(data: dict, path: list[str]) -> bool:
 
     This function tries to walk along the given keys path through the given data
     and returns true if the path exists, and false otherwise.
-    
+
     >>> data = { "test": { "hello": "world" } }
     >>> _contains_path(data, ["test", "hello"])
     True
@@ -77,7 +77,7 @@ def _get_value_for_path(data: dict, path: list[str]) -> Any | None:
 
     This functions walks along the given key path through the given data
     and returns the value specified by this path, if it exists.
-    
+
     >>> data = { "test": { "hello": "world" } }
     >>> _get_value_for_path(data, ["test", "hello"])
     'world'
@@ -100,7 +100,7 @@ def _set_value_for_path(data: dict, path: list[str], value: Any) -> bool:
 
     This functions walks along the given key path through the given data
     and sets the value of the path to the given value.
-    
+
     >>> data = { "test": { "hello": "world" } }
     >>> _set_value_for_path(data, ["test", "hello"], "value")
     True
@@ -117,7 +117,7 @@ def _set_value_for_path(data: dict, path: list[str], value: Any) -> bool:
             data = data[key]
         else:
             return False
-    
+
     if path[-1] in data:
         data[path[-1]] = value
         return True
