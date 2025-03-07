@@ -10,7 +10,7 @@ from typing import Type, Any
 from pydantic import BaseModel
 from deepdiff import DeepDiff
 
-from libyamlconf.yaml import YamlLoader, _contains_path, _get_paths, _invalid_config
+from libyamlconf.yaml import YamlLoader, _contains_path, _get_paths, _invalid_config, _is_url
 
 
 def load_and_verify(
@@ -59,6 +59,20 @@ def verify_files_exist(model: BaseModel, relative_path_keys: list[list[str]]) ->
             _invalid_config(f"The path {path} is not contained in the model {model}!")
 
         for entry in _get_paths(data, path):
-            file = entry[path[-1]]
-            if not Path(file).exists():
-                _invalid_config(f"The file {file} referenced by {path} does not exist!")
+            value = entry[path[-1]]
+
+            if _is_url(value, "Found and skipped URL %s.", logging.INFO):
+                continue
+
+            if isinstance(value, list):
+                for item in value:
+                    if _is_url(item, "Found and skipped URL %s.", logging.INFO):
+                        continue
+
+                    file = Path(item)
+                    if not file.exists():
+                        _invalid_config(f"The file {file} referenced by {path} does not exist!")
+            else:
+                file = Path(value)
+                if not file.exists():
+                    _invalid_config(f"The file {file} referenced by {path} does not exist!")

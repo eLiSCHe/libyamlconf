@@ -153,6 +153,21 @@ def _merge_values(current: Any, new: Any) -> Any:
         _invalid_config(f"Unsupported types for merge: {current} ({type(current)}), {new} ({type(new)})")
 
 
+def _is_url(value: Any, log: str | None = None, level=logging.DEBUG) -> bool:
+    """
+    Test if the given value is a URL.
+
+    :param value: The value to test.
+    :param log: A message to log if the value is an url.
+    :param level: Log level.
+    :returns: True if the value is a URL.
+    """
+    url = str(value).startswith("http://") or str(value).startswith("https://")
+    if url and log is not None:
+        logging.log(level, log, value)
+    return url
+
+
 class YamlLoader:
     def __init__(self, parent_key: str = "base", relative_path_keys: list[list[str]] = []):
         """
@@ -224,13 +239,21 @@ class YamlLoader:
                     for entry in entries:
                         value = entry[path[-1]]
                         if isinstance(value, str):
+                            if _is_url(value, log="Not resolving URL %s."):
+                                continue
+
                             file = value
                             resolved = layer.parent / file
                             logging.debug("Resolving path %s to %s for config file %s.", file, resolved, layer)
                             entry[path[-1]] = resolved
                         elif isinstance(value, list):
-                            resolved_files = []
+                            resolved_files: list[str | Path] = []
                             for file in value:
+                                file = str(file)
+                                if _is_url(file, log="Not resolving URL %s."):
+                                    resolved_files.append(file)
+                                    continue
+
                                 resolved = layer.parent / file
                                 logging.debug("Resolving path %s to %s for config file %s.", file, resolved, layer)
                                 resolved_files.append(resolved)

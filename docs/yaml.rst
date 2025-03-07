@@ -31,11 +31,11 @@ On of the core features, the merging of duplicate keys, is implemented as _merge
 
 To ease the handling of dicts, a bunch of helper methods are available:
 
+.. autofunction:: libyamlconf.yaml._path_generator
+
 .. autofunction:: libyamlconf.yaml._contains_path
 
-.. autofunction:: libyamlconf.yaml._get_value_for_path
-
-.. autofunction:: libyamlconf.yaml._set_value_for_path
+.. autofunction:: libyamlconf.yaml._get_paths
 
 To also log the issue in case of an exception, _invalid_config is used:
 
@@ -44,3 +44,8 @@ To also log the issue in case of an exception, _invalid_config is used:
 To load the content of a YAML file, the pyyaml module is used and called in _load_yaml:
 
 .. autofunction:: libyamlconf.yaml._load_yaml
+
+The function _is_url is used to skip URLs when resolving relative paths or checking
+that the files exist:
+
+.. autofunction:: libyamlconf.yaml._is_url
