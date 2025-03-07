@@ -38,9 +38,10 @@ def load_and_verify(
     # Check for not used parameters
     model_data = instance.model_dump()
     if model_data != data:
-        logging.warning(
-            "The config file contains not used parameters! Difference to loaded model:\n%s", DeepDiff(data, model_data)
-        )
+        diff = DeepDiff(data, model_data)
+        for key in diff.keys():
+            if "removed" in key:  # pragma: no branch
+                logging.warning("The config file contains not used parameters! %s", diff[key])
 
     return instance
 
