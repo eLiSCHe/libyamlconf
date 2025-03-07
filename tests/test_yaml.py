@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from libyamlconf.yaml import _load_yaml, InvalidConfiguration, YamlLoader, _get_value_for_path, _set_value_for_path
+from libyamlconf.yaml import (
+    _load_yaml,
+    InvalidConfiguration,
+    YamlLoader,
+    _get_paths,
+    _path_generator,
+)
 
 test_data = Path(__file__).parent / "data" / "yaml"
 
@@ -150,25 +156,86 @@ class TestYaml:
         with pytest.raises(InvalidConfiguration):
             loader.load(config)
 
-    def test_get_value_for_path_miss(self):
-        """get_value_for_path shall return None for a miss."""
-        data = { "test": { "hello": "world" } }
-        
-        value = _get_value_for_path(data, ["test", "hello"])
-        assert value == "world"
-        
-        value = _get_value_for_path(data, ["test", "other"])
-        assert value is None
+    def test_get_paths_miss(self):
+        """get_paths shall return [] for a miss."""
+        data = {"test": {"hello": "world"}}
 
-    def test_set_value_for_path_miss(self):
-        """get_value_for_path shall return None for a miss."""
-        data = { "a": { "b": { "c": "d" } } }
-        
-        result = _set_value_for_path(data, ["a", "b", "c"], "d")
-        assert result
-        
-        result = _set_value_for_path(data, ["a", "b", "d"], "value")
-        assert not result
-        
-        result = _set_value_for_path(data, ["a", "e", "c"], "value")
-        assert not result
+        entries = _get_paths(data, ["test", "hello"])
+        assert len(entries) == 1
+        assert "hello" in entries[0]
+        assert entries[0]["hello"] == "world"
+
+        value = _get_paths(data, ["test", "other"])
+        assert value == []
+
+    def test_path_generator(self):
+        simple = test_data / "complex.yaml"
+
+        data = _load_yaml(simple)
+
+        path = ["group_a", "child_a_1", "list_a_1", "second"]
+        expected_results = [
+            {"sub_child_a_1_2": "value_a_1_2_1", "second": "value_a_1_2_2"},
+            {"sub_list_child_a_1_3_2": "value_a_1_3_2_1", "second": "value_a_1_3_2_2"},
+        ]
+
+        for result, expected_result in zip(_path_generator(data=data, path=path), expected_results):
+            assert result == expected_result
+
+        path = ["group_b", "list_b_1", "sub_child_b_1_3", "second"]
+        expected_results = [
+            {"sub_list_child_b_1_3_2": "value_b_1_3_2_1", "second": "value_b_1_3_2_2"},
+        ]
+
+        for result, expected_result in zip(_path_generator(data=data, path=path), expected_results):
+            assert result == expected_result
+
+        path = ["group_c", "level1", "level2", "level3", "level4"]
+        assert {"level4": "hello"} == next(_path_generator(data, path), None)
+
+        path = ["group_d", "l2", "l2s1", "l2s2"]
+        assert {"l2s2": "world"} == next(_path_generator(data, path), None)
+
+    def test_path_generator_modify(self):
+        complex = test_data / "complex.yaml"
+
+        data = _load_yaml(complex)
+
+        path = ["group_a", "child_a_1", "list_a_1", "second"]
+        expected_results = [
+            {"sub_child_a_1_2": "value_a_1_2_1", "second": "value_a_1_2_2"},
+            {"sub_list_child_a_1_3_2": "value_a_1_3_2_1", "second": "value_a_1_3_2_2"},
+        ]
+
+        for result, expected_result in zip(_path_generator(data=data, path=path), expected_results):
+            assert result == expected_result
+            result["second"] = result["second"] + "_modified"
+
+        expected_results = [
+            {"sub_child_a_1_2": "value_a_1_2_1", "second": "value_a_1_2_2_modified"},
+            {"sub_list_child_a_1_3_2": "value_a_1_3_2_1", "second": "value_a_1_3_2_2_modified"},
+        ]
+
+        for result, expected_result in zip(_path_generator(data=data, path=path), expected_results):
+            assert result == expected_result
+
+    def test_resolve_complex_paths(self):
+        config_file = test_data / "complex_paths.yaml"
+
+        loader = YamlLoader(relative_path_keys=[["bases", "file"]])
+        data = loader.load(config_file)
+
+        assert data["bases"][0]["file"] == config_file.parent / "base1.yaml"
+        assert data["bases"][1]["file"] == config_file.parent / "base2.yaml"
+
+    def test_resolve_files(self):
+        """Test for resolving file paths."""
+        config_file = test_data / "resolve_paths.yaml"
+
+        loader = YamlLoader(relative_path_keys=[["file"], ["list-with-files", "file"], ["file-list"]])
+        data = loader.load(config_file)
+
+        assert data["file"] == config_file.parent / "other_include.txt"
+        assert data["list-with-files"][0]["file"] == config_file.parent / "other" / "include.txt"
+        assert data["file-list"][0] == config_file.parent / "other" / "include.txt"
+        assert data["file-list"][1] == config_file.parent / "other_include.txt"

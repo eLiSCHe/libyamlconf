@@ -2,3 +2,8 @@ base: base.yaml
 some: config
 file: not-existing.file
 not-used: value
+list-with-files:
+  - name: referenced
+    file: referenced.txt
+file-list:
+  - referenced.txt

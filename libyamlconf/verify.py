@@ -10,7 +10,7 @@ from typing import Type, Any
 from pydantic import BaseModel
 from deepdiff import DeepDiff
 
-from libyamlconf.yaml import YamlLoader, _contains_path, _get_value_for_path, _invalid_config
+from libyamlconf.yaml import YamlLoader, _contains_path, _get_paths, _invalid_config
 
 
 def load_and_verify(
@@ -31,21 +31,21 @@ def load_and_verify(
     # Load YAML data
     data = loader.load(file)
     # User Pydantic model to verify data
-    model = model(**data)
+    instance = model(**data)
 
     logging.debug("Loaded model: %s (%s)", model, type(model))
 
     # Check for not used parameters
-    model_data = model.model_dump()
+    model_data = instance.model_dump()
     if model_data != data:
         logging.warning(
             "The config file contains not used parameters! Difference to loaded model:\n%s", DeepDiff(data, model_data)
         )
 
-    return model
+    return instance
 
 
-def verify_files_exist(model: Type[BaseModel], relative_path_keys: list[list[str]]) -> None:
+def verify_files_exist(model: BaseModel, relative_path_keys: list[list[str]]) -> None:
     """
     Verify that the files referenced by relative_path_keys exist.
     :param model: Pydantic model containing the loaded data.
@@ -57,6 +57,7 @@ def verify_files_exist(model: Type[BaseModel], relative_path_keys: list[list[str
         if not _contains_path(data, path):
             _invalid_config(f"The path {path} is not contained in the model {model}!")
 
-        file = Path(_get_value_for_path(data, path))
-        if not file.exists():
-            _invalid_config(f"The file {file} referenced by {path} does not exist!")
+        for entry in _get_paths(data, path):
+            file = entry[path[-1]]
+            if not Path(file).exists():
+                _invalid_config(f"The file {file} referenced by {path} does not exist!")
