@@ -1,0 +1,5 @@
+files:
+  - base.yaml
+  - config.yaml
+  - http://www.google.de
+  - invalid.txt

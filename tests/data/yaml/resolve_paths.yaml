@@ -1,7 +1,9 @@
 file: other_include.txt
-list-with-files:
+url: http://www.google.de
+list_with_files:
   - name: referenced
     file: other/include.txt
-file-list:
+file_list:
   - other/include.txt
   - other_include.txt
+  - https://www.google.de
