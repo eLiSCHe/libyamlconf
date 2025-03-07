@@ -1,0 +1,5 @@
+bases:
+  - name: base1
+    file: base1.yaml
+  - name: base2
+    file: base2.yaml

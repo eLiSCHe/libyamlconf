@@ -1,0 +1,7 @@
+file: other_include.txt
+list-with-files:
+  - name: referenced
+    file: other/include.txt
+file-list:
+  - other/include.txt
+  - other_include.txt

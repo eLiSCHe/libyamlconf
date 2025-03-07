@@ -30,11 +30,11 @@ class Config(BaseModel):
     file: Path
 
 
-def main():
+def main() -> None:
     """
     Example for loading and verifying a YAML configuration.
     """
-    files = [["common", "file"], ["file"]]
+    files = [["common", "file"], ["file"], ["list-with-files", "file"], ["file-list"]]
     config_file = Path(__file__).parent / "config.yaml"
 
     print("Loading config file...")

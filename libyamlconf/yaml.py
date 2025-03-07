@@ -48,6 +48,33 @@ def _load_yaml(file: Path) -> dict[str, Any]:
         return yaml.safe_load(f)
 
 
+def _path_generator(data: dict, path: list[str]) -> Any:
+    """
+    Create an generator for the given path and the given data.
+
+    This generator yields the matching paths.
+
+    :param data: Data to get the specified value.
+    :param path: Keys path.
+    :return: Path generator yielding the path matches.
+    """
+    if isinstance(data, list):
+        for entry in data:
+            if isinstance(entry, dict):  # pragma: no branch
+                if path[0] in entry and len(path) == 1:
+                    yield entry
+                elif path[0] in entry:
+                    for match in _path_generator(entry, path[1:]):
+                        yield match
+
+    elif isinstance(data, dict):  # pragma: no branch
+        if len(path) == 1 and path[0] in data:
+            yield data
+        elif path[0] in data:
+            for match in _path_generator(data[path[0]], path[1:]):
+                yield match
+
+
 def _contains_path(data: dict, path: list[str]) -> bool:
     """
     Test if a given key path exists in the config data.
@@ -63,15 +90,11 @@ def _contains_path(data: dict, path: list[str]) -> bool:
     :param path: Keys path.
     :return: True if the path exists, false else.
     """
-    for key in path:
-        if key in data:
-            data = data[key]
-        else:
-            return False
-    return True
+    generator = _path_generator(data, path)
+    return next(generator, None) is not None
 
 
-def _get_value_for_path(data: dict, path: list[str]) -> Any | None:
+def _get_paths(data: dict, path: list[str]) -> list[Any]:
     """
     Get the config value for the given keys path.
 
@@ -79,50 +102,19 @@ def _get_value_for_path(data: dict, path: list[str]) -> Any | None:
     and returns the value specified by this path, if it exists.
 
     >>> data = { "test": { "hello": "world" } }
-    >>> _get_value_for_path(data, ["test", "hello"])
+    >>> entries = _get_paths(data, ["test", "hello"])
+    >>> assert len(entries) == 1
+    >>> entry = entries[0]
+    >>> assert "hello" in entry
+    >>> entry["hello"]
     'world'
 
     :param data: Data to get the specified value.
     :param path: Keys path.
     :return: Value specified by the keys path or None.
     """
-    for key in path:
-        if key in data:
-            data = data[key]
-        else:
-            return None
-    return data
-
-
-def _set_value_for_path(data: dict, path: list[str], value: Any) -> bool:
-    """
-    Set the config value for the given keys path.
-
-    This functions walks along the given key path through the given data
-    and sets the value of the path to the given value.
-
-    >>> data = { "test": { "hello": "world" } }
-    >>> _set_value_for_path(data, ["test", "hello"], "value")
-    True
-    >>> _get_value_for_path(data, ["test", "hello"])
-    'value'
-
-    :param data: Data to update the value.
-    :param path: Keys path.
-    :param value: New value for given config path.
-    :return: True if the value was update, false otherwise.
-    """
-    for key in path[:-1]:
-        if key in data:
-            data = data[key]
-        else:
-            return False
-
-    if path[-1] in data:
-        data[path[-1]] = value
-        return True
-    else:
-        return False
+    generator = _path_generator(data, path)
+    return [match for match in generator]
 
 
 def _merge_values(current: Any, new: Any) -> Any:
@@ -179,9 +171,9 @@ class YamlLoader:
 
     def _reset(self) -> None:
         """Reset parsing data structures."""
-        self._layers: list[Path] = []
-        self._layer_data: dict[Path, dict] = {}
-        self._data: dict[str, Any] = {}
+        self._layers = []
+        self._layer_data = {}
+        self._data = {}
 
     def _recursive_load(self, file: Path) -> None:
         """
@@ -228,10 +220,26 @@ class YamlLoader:
         for layer in self._layers:
             for path in self._relative_path_keys:
                 if _contains_path(self._layer_data[layer], path):
-                    file = _get_value_for_path(self._layer_data[layer], path)
-                    resolved = layer.parent / file
-                    logging.debug("Resolving path %s to %s for config file %s.", file, resolved, layer)
-                    _set_value_for_path(self._layer_data[layer], path, resolved)
+                    entries = _get_paths(self._layer_data[layer], path)
+                    for entry in entries:
+                        value = entry[path[-1]]
+                        if isinstance(value, str):
+                            file = value
+                            resolved = layer.parent / file
+                            logging.debug("Resolving path %s to %s for config file %s.", file, resolved, layer)
+                            entry[path[-1]] = resolved
+                        elif isinstance(value, list):
+                            resolved_files = []
+                            for file in value:
+                                resolved = layer.parent / file
+                                logging.debug("Resolving path %s to %s for config file %s.", file, resolved, layer)
+                                resolved_files.append(resolved)
+                            # Replace the list content
+                            entry[path[-1]] = resolved_files
+                        else:  # pragma: no cover
+                            # Should never happen
+                            raise Exception(f"Unexpected match {entry} for path {path}!")
+
                 else:
                     logging.debug("No match for path %s for layer %s.", path, layer)
 

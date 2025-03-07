@@ -1,0 +1,29 @@
+group_a:
+  child_a_1:
+    list_a_1:
+      - sub_child_a_1_1: value_a_1_1
+      - sub_child_a_1_2: value_a_1_2_1
+        second: value_a_1_2_2
+      - sub_child_a_1_3:
+        - sub_list_child_a_1_3_1: value_a_1_3_1
+      - sub_list_child_a_1_3_2: value_a_1_3_2_1
+        second: value_a_1_3_2_2
+group_b:
+  list_b_1:
+    - sub_child_b_1_1: value_b_1_1
+    - sub_child_b_1_2: value_b_1_2_1
+      second: value_b_1_2_2
+    - sub_child_b_1_3:
+      - sub_list_child_b_1_3_1: value_b_1_3_1
+      - sub_list_child_b_1_3_2: value_b_1_3_2_1
+        second: value_b_1_3_2_2
+group_c:
+  level1:
+    level2:
+      level3:
+        level4: hello
+group_d:
+  - l1:
+  - l2:
+    l2s1:
+      l2s2: world
