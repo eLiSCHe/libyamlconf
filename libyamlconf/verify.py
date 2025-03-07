@@ -51,7 +51,7 @@ def verify_files_exist(model: BaseModel, relative_path_keys: list[list[str]]) ->
     Verify that the files referenced by relative_path_keys exist.
     :param model: Pydantic model containing the loaded data.
     :param relative_path_keys: List of list of config keys. Each list is interpreted as one config path,
-    and the value of each path needs ot be a Path and the pointed file or directory needs to exist.
+        and the value of each path needs ot be a Path and the pointed file or directory needs to exist.
     """
     data = model.model_dump()
     for path in relative_path_keys:

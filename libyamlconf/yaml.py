@@ -56,7 +56,7 @@ def _path_generator(data: dict, path: list[str]) -> Any:
 
     :param data: Data to get the specified value.
     :param path: Keys path.
-    :return: Path generator yielding the path matches.
+    :yields: The sub-object matching the path.
     """
     if isinstance(data, list):
         for entry in data:
@@ -231,7 +231,11 @@ class YamlLoader:
                 )
 
     def _resolve_relative_paths(self) -> None:
-        """Convert relative paths to absolute paths."""
+        """
+        Convert relative paths to absolute paths.
+
+        :raises Exception: On unhandled path match - should never happen.
+        """
         for layer in self._layers:
             for path in self._relative_path_keys:
                 if _contains_path(self._layer_data[layer], path):
