@@ -14,11 +14,9 @@ jobs:
       
       - name: Run Ruff
         run: uv run ruff check --output-format=github .
-        continue-on-error: true
       
       - name: Lint the doc strings
         run: uv run darglint --verbosity 2 --docstring-style sphinx libyamlconf
-        continue-on-error: true 
       
       - name: Test with pytest  
         run: |  
